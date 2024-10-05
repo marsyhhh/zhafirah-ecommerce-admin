@@ -21,8 +21,8 @@ export async function POST(req: Request) {
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
-  const address = session?.customer_details?.address;
+  const session = event.data.object as Stripe.Checkout.Session
+  const address = session?.customer_details?.address
 
   const addressComponents = [
     address?.line1,
@@ -30,11 +30,10 @@ export async function POST(req: Request) {
     address?.city,
     address?.state,
     address?.postal_code,
-    address?.country
-  ];
+    address?.country,
+  ]
 
-  const addressString = addressComponents.filter((c) => c !== null).join(', ');
-
+  const addressString = addressComponents.filter((c) => c !== null).join(", ")
 
   if (event.type === "checkout.session.completed") {
     const order = await prismadb.order.update({
@@ -44,14 +43,14 @@ export async function POST(req: Request) {
       data: {
         isPaid: true,
         address: addressString,
-        phone: session?.customer_details?.phone || '',
+        phone: session?.customer_details?.phone || "",
       },
       include: {
         orderItems: true,
-      }
-    });
+      },
+    })
 
-    const productIds = order.orderItems.map((orderItem) => orderItem.productId);
+    const productIds = order.orderItems.map((orderItem) => orderItem.productId)
 
     await prismadb.product.updateMany({
       where: {
@@ -60,10 +59,10 @@ export async function POST(req: Request) {
         },
       },
       data: {
-        isArchived: true
-      }
-    });
+        isArchived: true,
+      },
+    })
   }
 
-  return new NextResponse(null, { status: 200 });
-};
+  return new NextResponse(null, { status: 200 })
+}
